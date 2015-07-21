@@ -1,0 +1,52 @@
+{
+    "appKeys": {
+        "KEY_CONDITIONS": 1,
+        "KEY_TEMPERATURE": 0
+    },
+    "capabilities": [
+        "location"
+    ],
+    "companyName": "Kenneth Schlatter",
+    "longName": "Austin Spark League: Time + Weather",
+    "projectType": "native",
+    "resources": {
+        "media": [
+            {
+                "file": "fonts/Syncopate-Regular.ttf",
+                "name": "UBUNTU_12",
+                "type": "font"
+            },
+            {
+                "file": "fonts/digital-7 (mono).ttf",
+                "name": "SYNC_24",
+                "type": "font"
+            },
+            {
+                "file": "images/asl_resized_dithered_inverted.png",
+                "name": "SPARK_ICON_DARK",
+                "type": "png"
+            },
+            {
+                "file": "images/asl_resized_dithered.png",
+                "name": "SPARK_ICON_LIGHT",
+                "type": "png"
+            },
+            {
+                "file": "images/asl_menu_image.png",
+                "menuIcon": true,
+                "name": "MENU_IMAGE",
+                "type": "png"
+            }
+        ]
+    },
+    "sdkVersion": "3",
+    "shortName": "ASL TW",
+    "targetPlatforms": [
+        "aplite"
+    ],
+    "uuid": "5ceb914f-8f6e-48b1-8ebb-db6866a6c7b9",
+    "versionLabel": "1.0",
+    "watchapp": {
+        "watchface": true
+    }
+}
