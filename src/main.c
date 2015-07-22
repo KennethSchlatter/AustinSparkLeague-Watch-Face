@@ -68,7 +68,7 @@ static void main_window_load(Window *window) {
   bool color = persist_read_bool(KEY_COLOR);
  
   //Option-specific setup
-  if(color == true)
+  if(color)
   {
    	//Create temperature layer
 text_layer_set_background_color(s_weather_layer, GColorBlack);
@@ -166,6 +166,9 @@ void process_tuple(Tuple *t){
 	int key = t->key;
 	int value = t->value->int32; //If it's actually an integer value (which I recommend doing)
 	APP_LOG(APP_LOG_LEVEL_DEBUG, "Got key %d with %d, %s", key, value, t->value->cstring);
+	static char temperature_buffer[8];
+  static char conditions_buffer[32];
+  static char weather_layer_buffer[32];
   switch (key) {
 	  case KEY_COLOR:
       	//It's the KEY_COLOR key
@@ -187,13 +190,14 @@ void process_tuple(Tuple *t){
 		  APP_LOG(APP_LOG_LEVEL_INFO, "Got key_color with value %s", t->value->cstring);
 		  break;
 	 case KEY_CONDITIONS:
+	  	snprintf(conditions_buffer, sizeof(conditions_buffer), "%s", t->value->cstring);
 	  	break;
 	 case KEY_TEMPERATURE:;
-	  	static char buffer[] = "what what";
-	  	snprintf(buffer, sizeof(buffer), "%d", value);
-	  	text_layer_set_text(s_weather_layer, buffer);
+	    snprintf(temperature_buffer, sizeof(temperature_buffer), "%dF", (int)t->value->int32);
 	  	break;
   }
+	snprintf(weather_layer_buffer, sizeof(weather_layer_buffer), "%s %s", conditions_buffer, temperature_buffer);
+	text_layer_set_text(s_weather_layer, weather_layer_buffer);
 }
 
 void inbox(DictionaryIterator *iter, void *context){	
