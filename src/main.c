@@ -9,6 +9,7 @@ static BitmapLayer *s_background_layer;
 static GBitmap *s_background_bitmap;
 #define KEY_TEMPERATURE 0
 #define KEY_CONDITIONS 1
+#define KEY_COLOR 2
 
 static void update_time() {
   // Get a tm structure
@@ -46,11 +47,6 @@ static void main_window_load(Window *window) {
   // Create temperature Layer
   s_weather_layer = text_layer_create(GRect(0, 0, 144, 16));
   
-  text_layer_set_background_color(s_weather_layer, GColorWhite);
-  text_layer_set_text_color(s_weather_layer, GColorBlack);
-  text_layer_set_text_alignment(s_weather_layer, GTextAlignmentCenter);
-  text_layer_set_text(s_weather_layer, "Loading...");
-  
   // Create time TextLayer
   s_time_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_SYNC_24));
   // Create second custom font, apply it and add to Window
@@ -62,13 +58,42 @@ static void main_window_load(Window *window) {
 
   //time layer
   s_time_layer = text_layer_create(GRect(0, 136, 144, 40));
-  text_layer_set_background_color(s_time_layer, GColorClear);
-  text_layer_set_text_color(s_time_layer, GColorWhite);
   text_layer_set_text(s_time_layer, "00:00");
 
   // Improve the layout to be more like a watchface
   text_layer_set_font(s_time_layer, s_time_font);
   text_layer_set_text_alignment(s_time_layer, GTextAlignmentCenter);
+	
+	 //Check for saved option
+  bool color = persist_read_bool(KEY_COLOR);
+ 
+  //Option-specific setup
+  if(color == true)
+  {
+   	//Create temperature layer
+text_layer_set_background_color(s_weather_layer, GColorBlack);
+  text_layer_set_text_color(s_weather_layer, GColorWhite);
+  text_layer_set_text_alignment(s_weather_layer, GTextAlignmentCenter);
+  text_layer_set_text(s_weather_layer, "Loading...");
+
+	//Time layer
+	text_layer_set_background_color(s_time_layer, GColorClear);
+  text_layer_set_text_color(s_time_layer, GColorBlack);
+
+  }
+  else
+  {
+	//Create temperature layer
+text_layer_set_background_color(s_weather_layer, GColorWhite);
+  text_layer_set_text_color(s_weather_layer, GColorBlack);
+  text_layer_set_text_alignment(s_weather_layer, GTextAlignmentCenter);
+  text_layer_set_text(s_weather_layer, "Loading...");
+
+	//Time layer
+	text_layer_set_background_color(s_time_layer, GColorClear);
+  text_layer_set_text_color(s_time_layer, GColorWhite);
+
+  }
 
   // Add it as a child layer to the Window's root layer
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_time_layer));
@@ -137,8 +162,6 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
   text_layer_set_text(s_weather_layer, weather_layer_buffer);
 }
 
-
-
 static void inbox_dropped_callback(AppMessageResult reason, void *context) {
   APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped!");
 }
@@ -151,6 +174,37 @@ static void outbox_sent_callback(DictionaryIterator *iterator, void *context) {
   APP_LOG(APP_LOG_LEVEL_INFO, "Outbox send success!");
 }
 
+static void in_recv_handler(DictionaryIterator *iterator, void *context) {
+  //Get Tuple
+  Tuple *t = dict_read_first(iterator);
+  if(t)
+  {
+    switch(t->key)
+    {
+    case KEY_COLOR:
+      //It's the KEY_COLOR key
+      if(strcmp(t->value->cstring, "on") == 2)
+      {
+        //Set and save as light
+	window_set_background_color(s_main_window, GColorWhite);
+ text_layer_set_background_color(s_time_layer, GColorClear);
+	text_layer_set_text_color(s_time_layer, GColorBlack);
+		 
+        persist_write_bool(KEY_COLOR, true);
+      }
+      else if(strcmp(t->value->cstring, "off") == 2)
+      {
+        //Set and save as dark
+	window_set_background_color(s_main_window, GColorBlack);
+ text_layer_set_background_color(s_time_layer, GColorClear);
+	text_layer_set_text_color(s_time_layer, GColorWhite);
+		 
+        persist_write_bool(KEY_COLOR, false);
+      }
+      break;
+    }
+  }
+}
 
 static void init() {
  
@@ -165,6 +219,10 @@ static void init() {
   
   // Open AppMessage
   app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
+	
+	//Open AppMessage Config
+	app_message_register_inbox_received((AppMessageInboxReceived) in_recv_handler);
+app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
 
   
   // Create main Window element and assign to pointer
@@ -181,6 +239,7 @@ static void init() {
   
   // Make sure the time is displayed from the start
   update_time();
+	
 }
 
 static void deinit() {

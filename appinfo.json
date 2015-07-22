@@ -1,10 +1,12 @@
 {
     "appKeys": {
+        "KEY_COLOR": 2,
         "KEY_CONDITIONS": 1,
         "KEY_TEMPERATURE": 0
     },
     "capabilities": [
-        "location"
+        "location",
+        "configurable"
     ],
     "companyName": "Kenneth Schlatter",
     "longName": "Austin Spark League: Time + Weather",
