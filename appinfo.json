@@ -14,6 +14,11 @@
     "resources": {
         "media": [
             {
+                "file": "images/asl_resized_dithered.png",
+                "name": "SPARK_ICON_LIGHT",
+                "type": "png"
+            },
+            {
                 "file": "fonts/Syncopate-Regular.ttf",
                 "name": "UBUNTU_12",
                 "type": "font"
@@ -26,11 +31,6 @@
             {
                 "file": "images/asl_resized_dithered_inverted.png",
                 "name": "SPARK_ICON_DARK",
-                "type": "png"
-            },
-            {
-                "file": "images/asl_resized_dithered.png",
-                "name": "SPARK_ICON_LIGHT",
                 "type": "png"
             },
             {

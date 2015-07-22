@@ -80,3 +80,18 @@ Pebble.addEventListener('appmessage',
     getWeather();
   }                     
 );
+
+Pebble.addEventListener('showConfiguration', function(e){
+	Pebble.openURL("http://kennethschlatter.github.io/CONFIG-Face-ASL/");
+});
+
+Pebble.addEventListener('webviewclosed', function(e){
+	console.log("Configuration closed");
+    if (e.response) {
+		console.log("Sending values!");
+		var values = JSON.parse(decodeURIComponent(e.response));
+		Pebble.sendAppMessage(
+			values
+		);
+	}
+});

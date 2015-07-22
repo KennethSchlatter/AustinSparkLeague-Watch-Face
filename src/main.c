@@ -162,26 +162,11 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
   text_layer_set_text(s_weather_layer, weather_layer_buffer);
 }
 
-static void inbox_dropped_callback(AppMessageResult reason, void *context) {
-  APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped!");
-}
-
-static void outbox_failed_callback(DictionaryIterator *iterator, AppMessageResult reason, void *context) {
-  APP_LOG(APP_LOG_LEVEL_ERROR, "Outbox send failed!");
-}
-
-static void outbox_sent_callback(DictionaryIterator *iterator, void *context) {
-  APP_LOG(APP_LOG_LEVEL_INFO, "Outbox send success!");
-}
-
-static void in_recv_handler(DictionaryIterator *iterator, void *context) {
-  //Get Tuple
-  Tuple *t = dict_read_first(iterator);
-  if(t)
-  {
-    switch(t->key)
-    {
-    case KEY_COLOR:
+void process_tuple(Tuple *t){
+	int key = t->key;
+	int value = t->value->int32; //If it's actually an integer value (which I recommend doing)
+  switch (key) {
+	  case KEY_COLOR:
       //It's the KEY_COLOR key
       if(strcmp(t->value->cstring, "on") == 2)
       {
@@ -192,7 +177,7 @@ static void in_recv_handler(DictionaryIterator *iterator, void *context) {
 		 
         persist_write_bool(KEY_COLOR, true);
       }
-      else if(strcmp(t->value->cstring, "off") == 2)
+      else if(strcmp(t->value->cstring, "off") > 0)
       {
         //Set and save as dark
 	window_set_background_color(s_main_window, GColorBlack);
@@ -201,9 +186,34 @@ static void in_recv_handler(DictionaryIterator *iterator, void *context) {
 		 
         persist_write_bool(KEY_COLOR, false);
       }
+	  APP_LOG(APP_LOG_LEVEL_INFO, "Got key_color with value %s", t->value->cstring);
       break;
-    }
   }
+}
+
+void inbox(DictionaryIterator *iter, void *context){	
+	Tuple *t = dict_read_first(iter);
+	if(t){
+		process_tuple(t);
+	}
+	while(t != NULL){
+		t = dict_read_next(iter);
+		if(t){
+			process_tuple(t);
+		}
+	}
+}
+
+static void inbox_dropped_callback(AppMessageResult reason, void *context) {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped!");
+}
+
+static void outbox_failed_callback(DictionaryIterator *iterator, AppMessageResult reason, void *context) {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Outbox send failed!");
+}
+
+static void outbox_sent_callback(DictionaryIterator *iterator, void *context) {
+  APP_LOG(APP_LOG_LEVEL_INFO, "Outbox send success!");
 }
 
 static void init() {
@@ -217,12 +227,10 @@ static void init() {
   app_message_register_outbox_failed(outbox_failed_callback);
   app_message_register_outbox_sent(outbox_sent_callback);
   
-  // Open AppMessage
-  app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
 	
 	//Open AppMessage Config
-	app_message_register_inbox_received((AppMessageInboxReceived) in_recv_handler);
-app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
+	app_message_register_inbox_received(inbox);
+  app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
 
   
   // Create main Window element and assign to pointer
