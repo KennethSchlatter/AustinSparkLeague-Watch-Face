@@ -165,33 +165,39 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
 void process_tuple(Tuple *t){
 	int key = t->key;
 	int value = t->value->int32; //If it's actually an integer value (which I recommend doing)
+	APP_LOG(APP_LOG_LEVEL_DEBUG, "Got key %d with %d, %s", key, value, t->value->cstring);
   switch (key) {
 	  case KEY_COLOR:
-      //It's the KEY_COLOR key
-      if(strcmp(t->value->cstring, "on") == 2)
-      {
-        //Set and save as light
-	window_set_background_color(s_main_window, GColorWhite);
- text_layer_set_background_color(s_time_layer, GColorClear);
-	text_layer_set_text_color(s_time_layer, GColorBlack);
-		 
-        persist_write_bool(KEY_COLOR, true);
-      }
-      else if(strcmp(t->value->cstring, "off") > 0)
-      {
-        //Set and save as dark
-	window_set_background_color(s_main_window, GColorBlack);
- text_layer_set_background_color(s_time_layer, GColorClear);
-	text_layer_set_text_color(s_time_layer, GColorWhite);
-		 
-        persist_write_bool(KEY_COLOR, false);
-      }
-	  APP_LOG(APP_LOG_LEVEL_INFO, "Got key_color with value %s", t->value->cstring);
-      break;
+      	//It's the KEY_COLOR key
+		  if(strcmp(t->value->cstring, "on") == 2){
+			//Set and save as light
+			window_set_background_color(s_main_window, GColorWhite);
+			text_layer_set_background_color(s_time_layer, GColorClear);
+			text_layer_set_text_color(s_time_layer, GColorBlack);
+			persist_write_bool(KEY_COLOR, true);
+		  }
+		  else if(strcmp(t->value->cstring, "off") > 0){
+			//Set and save as dark
+			window_set_background_color(s_main_window, GColorBlack);
+			text_layer_set_background_color(s_time_layer, GColorClear);
+			text_layer_set_text_color(s_time_layer, GColorWhite);
+
+			persist_write_bool(KEY_COLOR, false);
+		  }
+		  APP_LOG(APP_LOG_LEVEL_INFO, "Got key_color with value %s", t->value->cstring);
+		  break;
+	 case KEY_CONDITIONS:
+	  	break;
+	 case KEY_TEMPERATURE:;
+	  	static char buffer[] = "what what";
+	  	snprintf(buffer, sizeof(buffer), "%d", value);
+	  	text_layer_set_text(s_weather_layer, buffer);
+	  	break;
   }
 }
 
 void inbox(DictionaryIterator *iter, void *context){	
+	APP_LOG(APP_LOG_LEVEL_INFO, "Got something in my inbox");
 	Tuple *t = dict_read_first(iter);
 	if(t){
 		process_tuple(t);
@@ -204,32 +210,13 @@ void inbox(DictionaryIterator *iter, void *context){
 	}
 }
 
-static void inbox_dropped_callback(AppMessageResult reason, void *context) {
-  APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped!");
-}
-
-static void outbox_failed_callback(DictionaryIterator *iterator, AppMessageResult reason, void *context) {
-  APP_LOG(APP_LOG_LEVEL_ERROR, "Outbox send failed!");
-}
-
-static void outbox_sent_callback(DictionaryIterator *iterator, void *context) {
-  APP_LOG(APP_LOG_LEVEL_INFO, "Outbox send success!");
-}
-
 static void init() {
  
   // Register with TickTimerService
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
-  
-  // Register callbacks
-  app_message_register_inbox_received(inbox_received_callback);
-  app_message_register_inbox_dropped(inbox_dropped_callback);
-  app_message_register_outbox_failed(outbox_failed_callback);
-  app_message_register_outbox_sent(outbox_sent_callback);
-  
-	
-	//Open AppMessage Config
-	app_message_register_inbox_received(inbox);
+    
+  //Open AppMessage Config
+  app_message_register_inbox_received(inbox);
   app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
 
   
